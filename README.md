@@ -7,7 +7,7 @@ Test project for a job application
 
 To build, run from the project root:
 ```
-$ python setup.py sdist
+$(venv) python setup.py sdist
 ```
 
 ## Installation
