@@ -30,7 +30,7 @@ $(venv) db_query --path='${DB_PATH}'
 ```
 To cleanup the database, run
 ```
-$(venv) db_query --path='${DB_PATH}'
+$(venv) db_cleanup --path='${DB_PATH}'
 ```
 Make database and s2 credentials file (template is in `credentials.yaml`).
 And run the service:
