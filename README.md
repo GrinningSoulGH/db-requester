@@ -22,8 +22,9 @@ To populate the database, run
 ```
 $(venv) db_populate --path='${DB_PATH}'
 ```
-Population script is repeatable, on subsequent runs adds rows to the `queue_requests` table.
-Then, make sure to add DB_PATH to the service config file (template is in `config.yaml`).
+Population script is repeatable, on subsequent runs it adds rows to the `queue_requests` table.
+
+Make sure to add DB_PATH to the service config file (template is in `config.yaml`).
 To query the database, run
 ```
 $(venv) db_query --path='${DB_PATH}'
