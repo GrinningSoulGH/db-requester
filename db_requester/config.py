@@ -12,15 +12,6 @@ class ServiceSettings(BaseSettings):
     s2_password: str
 
 
-class S2Settings(BaseModel):
-    """Settings for making requests to S2"""
-
-    url: AnyHttpUrl
-    login: str
-    password: str
-    timeout: confloat(gt=0)
-
-
 class GeneralConfig(BaseModel):
     """Service's general config section"""
 
@@ -45,3 +36,12 @@ def config_from_yaml(path: Path) -> AppConfig:
     with open(path) as f:
         config = yaml.safe_load(f)
     return AppConfig(**config)
+
+
+class S2Settings(BaseModel):
+    """Settings for making requests to S2"""
+
+    url: AnyHttpUrl
+    login: str
+    password: str
+    timeout: confloat(gt=0)
