@@ -20,6 +20,8 @@ Service is configured via a `.yaml` file (template is in config.yaml) and enviro
 
 Database scripts use the environment variable DB_URL that is the same as service's.
 
+Usage of any dialect and driver outside of sqlite with sqlite3 may require installing additional dependencies.
+
 ## Running
 To populate the database, run
 ```
@@ -37,7 +39,7 @@ To cleanup the database, run
 $(venv) env DB_URL="${DB_URL}" python cleanup_db.py
 ```
 
-To run S2, run
+To run S2:
 ```
 $(venv) pip install aiohttp
 $(venv) python -m aiohttp.web -H "${HOST}" -P "${PORT}" s2:init_func
