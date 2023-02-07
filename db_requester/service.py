@@ -39,9 +39,13 @@ def run_service_multithreaded(
 ) -> None:
     with ThreadPool() as thread_pool:
         while not shutdown_flag.is_set():
+            scheduled_tasks = []
             for _ in range(available_threads):
-                thread_pool.apply_async(functools.partial(process_requests, settings))
-            thread_pool.join()
+                scheduled_tasks.append(
+                    thread_pool.apply_async(process_requests, (settings,))
+                )
+            for task in scheduled_tasks:
+                task.wait()
             time.sleep(5)
 
 

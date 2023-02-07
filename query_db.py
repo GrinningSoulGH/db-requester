@@ -1,7 +1,8 @@
-from db_requester.db import Request, RequestState, Response
 from pydantic import BaseSettings
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
+
+from db_requester.db import Request, RequestState
 
 
 class ScriptSettings(BaseSettings):
