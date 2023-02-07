@@ -18,20 +18,25 @@ Service is configured via a `.yaml` file (template is in config.yaml) and enviro
 - S2_LOGIN - login for the S2 service;
 - S2_PASSWORD - password for the S2 service.
 
+Database scripts use the environment variable DB_URL, that is the same as service's.
+
 ## Running
 To populate the database, run
 ```
 $(venv) env DB_URL="${DB_URL}" python populate_db.py
 ```
 Population script is repeatable, on subsequent runs it adds rows to the `queue_requests` table.
+
 To query the database, run
 ```
 $(venv) env DB_URL="${DB_URL}" python query_db.py
 ```
+
 To cleanup the database, run
 ```
 $(venv) env DB_URL="${DB_URL}" python cleanup_db.py
 ```
+
 To run S2, run
 ```
 $(venv) pip install aiohttp
