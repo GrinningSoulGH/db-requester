@@ -18,7 +18,7 @@ Service is configured via a `.yaml` file (template is in config.yaml) and enviro
 - S2_LOGIN - login for the S2 service;
 - S2_PASSWORD - password for the S2 service.
 
-Database scripts use the environment variable DB_URL, that is the same as service's.
+Database scripts use the environment variable DB_URL that is the same as service's.
 
 ## Running
 To populate the database, run
