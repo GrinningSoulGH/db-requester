@@ -1,6 +1,8 @@
 import random
 from http import HTTPStatus
+
 from aiohttp import web
+
 from populate_db import get_random_string
 
 
