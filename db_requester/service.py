@@ -1,90 +1,78 @@
 import functools
-import signal
-import sqlite3
-import threading
 import logging
+import threading
 import time
-import json
+import signal
+from pathlib import Path
+from multiprocessing.pool import ThreadPool
+import click
+import sqlalchemy
 
-from .s2.communicator import S2Communicator, ThreadedS2Communicator
-from .threads import ThreadCounter
-from .database.connector import get_rdbms_connect
-from .database.reader import DatabaseReader, ThreadedDatabaseReader
-from .database.writer import DatabaseWriter, ThreadedDatabaseWriter
-from .config import (
-    AppConfig,
-    CredentialsConfig,
-    DatabaseConfig,
-    DatabaseCredentialsConfig,
-)
+from .config import S2Settings, ServiceSettings, config_from_yaml
+from .db import Session
+from .request import process_requests
 
 log = logging.getLogger(__name__)
 
 
-def graceful_shutdown(shutdown_flag: threading.Event, sig, frame):
+def graceful_shutdown(shutdown_flag: threading.Event, sig, frame) -> None:
     """Graceful shutdown initiation."""
     log.info("Starting service shutdown")
     shutdown_flag.set()
 
 
-def make_db_connection(
-    db_config: DatabaseConfig, db_credentials: DatabaseCredentialsConfig
-):
-    """Function making the database connections. Returns PEP249 compliant Connection object."""
-    match db_config.rdbms:
-        case "sqlite":
-            return sqlite3.connect(db_config.database_path)
-        case _:
-            raise RuntimeError(f"RDBMS {db_config.rdbms} not supported")
-
-
-def setup_signal_handlers(handler):
+def setup_signal_handlers(handler) -> None:
     """Setup service signal handlers"""
     signal.signal(signal.SIGINT, handler)
     signal.signal(signal.SIGTERM, handler)
 
 
-class Service:
-    def __init__(
-        self,
-        config: AppConfig,
-        credentials: CredentialsConfig,
-        shutdown_flag: threading.Event,
-    ) -> None:
-        rdbms_connect = get_rdbms_connect(config.database, credentials.database)
-        thread_counter = ThreadCounter(config.general.thread_count - 1)
-        if thread_counter.one():
-            self._database_reader = ThreadedDatabaseReader(rdbms_connect, shutdown_flag)
-        else:
-            self._database_reader = DatabaseReader(rdbms_connect, shutdown_flag)
-        pools = thread_counter.pool(2)
-        if pools[0] != 0:
-            self._s2communicator = ThreadedS2Communicator(
-                config.s2, credentials.s2, pools[0]
-            )
-        else:
-            self._s2communicator = S2Communicator(config.s2, credentials.s2)
-        if pools[1] != 0:
-            self._database_writer = ThreadedDatabaseWriter(rdbms_connect, pools[1])
-        else:
-            self._database_writer = DatabaseWriter(rdbms_connect)
-
-    def run(self) -> None:
-        """Running the service. Blocks until shutdown_flag is set."""
-        rows = self._database_reader.start()
-        responses = self._s2communicator.start(rows)
-        self._database_writer.start(responses)
-
-        self._database_reader.wait()
-        self._s2communicator.wait()
-        self._database_writer.wait()
+def run_service(settings: S2Settings, shutdown_flag: threading.Event) -> None:
+    while not shutdown_flag.is_set():
+        process_requests(settings)
+        time.sleep(5)
 
 
-def run_service(config: AppConfig, credentials: CredentialsConfig) -> None:
+def run_service_multithreaded(
+    available_threads: int,
+    settings: S2Settings,
+    shutdown_flag: threading.Event,
+) -> None:
+    with ThreadPool() as thread_pool:
+        while not shutdown_flag.is_set():
+            for _ in range(available_threads):
+                thread_pool.apply_async(functools.partial(process_requests, settings))
+            thread_pool.join()
+            time.sleep(5)
+
+
+@click.command()
+@click.option("--config", type=click.Path(exists=True))
+def run(config: Path) -> None:
     shutdown_flag = threading.Event()
     setup_signal_handlers(functools.partial(graceful_shutdown, shutdown_flag))
 
-    log.info("Service running with config: %s", config.json())
-    service = Service(config, credentials, shutdown_flag)
-    service.run()
+    app_config = config_from_yaml(config)
+
+    service_settings = ServiceSettings()
+
+    s2_settings = S2Settings(
+        url=app_config.s2.url,
+        timeout=app_config.s2.response_timeout,
+        login=service_settings.s2_login,
+        password=service_settings.s2_password,
+    )
+
+    engine = sqlalchemy.create_engine(service_settings.db_url)
+
+    Session.configure(bind=engine)
+
+    # Main thread counts, so we subtract one
+    available_threads = app_config.general.thread_count - 1
+
+    log.info("Service start")
+    if available_threads == 0:
+        run_service(s2_settings, shutdown_flag)
+    else:
+        run_service_multithreaded(available_threads, s2_settings, shutdown_flag)
     log.info("Service shutdown")

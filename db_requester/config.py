@@ -1,62 +1,47 @@
-import yaml
-from pydantic import BaseModel, constr, conint, AnyHttpUrl
 from pathlib import Path
-import logging
+
+import yaml
+from pydantic import AnyHttpUrl, BaseModel, BaseSettings, confloat, conint
 
 
-log = logging.getLogger(__name__)
+class ServiceSettings(BaseSettings):
+    """Env variables supported by service"""
+
+    db_url: str
+    s2_login: str
+    s2_password: str
 
 
-class RealDatabaseCredentialsConfig(BaseModel):
-    user: str
-    password: str
+class S2Settings(BaseModel):
+    """Settings for making requests to S2"""
 
-
-DatabaseCredentialsConfig = RealDatabaseCredentialsConfig | None
-
-
-class S2CredentialsConfig(BaseModel):
+    url: AnyHttpUrl
     login: str
     password: str
-
-
-class CredentialsConfig(BaseModel):
-    database: DatabaseCredentialsConfig
-    s2: S2CredentialsConfig
-
-
-class SqliteConfig(BaseModel):
-    rdbms: constr(regex=r"^sqlite$")
-    database_path: Path
-
-
-DatabaseConfig = SqliteConfig
+    timeout: confloat(gt=0)
 
 
 class GeneralConfig(BaseModel):
+    """Service's general config section"""
+
     thread_count: conint(ge=1, le=100)
 
 
 class S2Config(BaseModel):
-    response_timeout: int
+    """Service's s2 config section"""
+
+    response_timeout: confloat(gt=0)
     url: AnyHttpUrl
 
 
 class AppConfig(BaseModel):
+    """Service's config file"""
+
     general: GeneralConfig
-    database: DatabaseConfig
     s2: S2Config
 
 
-def parse_from_yaml(path):
+def config_from_yaml(path: Path) -> AppConfig:
     with open(path) as f:
         config = yaml.safe_load(f)
-    return config
-
-
-def parse_config(path: Path) -> AppConfig:
-    return AppConfig(**parse_from_yaml(path))
-
-
-def parse_credentials(path: Path) -> CredentialsConfig:
-    return CredentialsConfig(**parse_from_yaml(path))
+    return AppConfig(**config)

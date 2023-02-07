@@ -1,10 +1,6 @@
 general:
   thread_count: 1
 
-database:
-  rdbms: "sqlite"
-  database_path: "/home/gs/Python/sqlite.db"
-
 s2:
-  url: "https://ru.wikipedia.org"
+  url: "http://localhost:8111"
   response_timeout: 10
