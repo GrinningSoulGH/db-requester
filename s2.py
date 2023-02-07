@@ -6,7 +6,7 @@ from aiohttp import web
 from populate_db import get_random_string
 
 
-def random_handler(request):
+def random_handler(request: web.Request):
     return web.Response(
         text=get_random_string(10), status=random.choice(list(HTTPStatus)).value
     )

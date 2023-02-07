@@ -42,7 +42,7 @@ def randomize_request() -> Request:
     )
 
 
-def main():
+def main() -> None:
     settings = ScriptSettings()
     engine = create_engine(settings.db_url)
     Base.metadata.create_all(engine)
