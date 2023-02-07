@@ -1,10 +1,11 @@
 import functools
 import logging
+import signal
 import threading
 import time
-import signal
-from pathlib import Path
 from multiprocessing.pool import ThreadPool
+from pathlib import Path
+
 import click
 import sqlalchemy
 
@@ -16,13 +17,11 @@ log = logging.getLogger(__name__)
 
 
 def graceful_shutdown(shutdown_flag: threading.Event, sig, frame) -> None:
-    """Graceful shutdown initiation."""
     log.info("Starting service shutdown")
     shutdown_flag.set()
 
 
 def setup_signal_handlers(handler) -> None:
-    """Setup service signal handlers"""
     signal.signal(signal.SIGINT, handler)
     signal.signal(signal.SIGTERM, handler)
 

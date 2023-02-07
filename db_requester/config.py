@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import yaml
-from pydantic import AnyHttpUrl, BaseModel, BaseSettings, confloat, conint
+from pydantic import BaseModel, BaseSettings, AnyHttpUrl, confloat, conint
 
 
 class ServiceSettings(BaseSettings):
@@ -25,17 +25,17 @@ class S2Config(BaseModel):
     url: AnyHttpUrl
 
 
-class AppConfig(BaseModel):
+class ServiceConfig(BaseModel):
     """Service's config file"""
 
     general: GeneralConfig
     s2: S2Config
 
 
-def config_from_yaml(path: Path) -> AppConfig:
+def config_from_yaml(path: Path) -> ServiceConfig:
     with open(path) as f:
         config = yaml.safe_load(f)
-    return AppConfig(**config)
+    return ServiceConfig(**config)
 
 
 class S2Settings(BaseModel):

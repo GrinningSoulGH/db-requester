@@ -1,6 +1,7 @@
-from db_requester.db import Base
 from pydantic import BaseSettings
 from sqlalchemy import create_engine
+
+from db_requester.db import Base
 
 
 class ScriptSettings(BaseSettings):
