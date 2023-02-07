@@ -8,7 +8,7 @@ class ScriptSettings(BaseSettings):
     db_url: str
 
 
-def main():
+def main() -> None:
     settings = ScriptSettings()
     engine = create_engine(settings.db_url)
     Base.metadata.drop_all(engine)
