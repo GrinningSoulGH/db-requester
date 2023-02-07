@@ -1,15 +1,13 @@
-import logging
 import json
-import threading
+import logging
 from urllib.parse import urljoin
 
 import requests
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 
-from db_requester.config import S2Settings
-
-from .db import RequestState, Response, Session, Request
+from .config import S2Settings
+from .db import Request, RequestState, Response, Session
 
 log = logging.getLogger(__name__)
 
