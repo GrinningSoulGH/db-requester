@@ -29,7 +29,7 @@ $(venv) env DB_URL="${DB_URL}" python populate_db.py
 ```
 Population script is repeatable, on subsequent runs it adds rows to the `queue_requests` table.
 
-To query the database, run
+To get IDs of unprocessed requests, run
 ```
 $(venv) env DB_URL="${DB_URL}" python query_db.py
 ```
