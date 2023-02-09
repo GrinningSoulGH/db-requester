@@ -1,7 +1,7 @@
 db-requester
 ============
 
-Test project for a job application.
+Simple SQL taask queue processor.
 
 ## Dependencies
 Python ~= 3.11
